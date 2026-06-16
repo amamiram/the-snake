@@ -67,7 +67,7 @@ class GameObject:
         """Абстрактный метод отрисовки
         (переопределяется в дочерних классах).
         """
-        raise NotImplementedError("Метод draw должен быть переопределён")
+        raise NotImplementedError('Метод draw должен быть переопределён')
 
     def draw_cell(self, position, color, border_color=None):
         """Рисует одну ячейку на игровом поле.
@@ -91,7 +91,7 @@ class Apple(GameObject):
 
         Args:
             snake_positions: Список координат змейки (обязателен для игры,
-                           но может быть None для тестов)
+                           но для тестов None )
         """
         super().__init__(body_color=APPLE_COLOR)
         if snake_positions is None:
