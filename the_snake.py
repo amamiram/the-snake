@@ -253,7 +253,7 @@ def main():
         if snake.get_head_position() == apple.position:
             snake.length += 1
             apple.randomize_position(snake.positions)
-        # Проверка: столкновение с собой (все сегменты кроме головы)       
+        # Проверка: столкновение с собой (все сегменты кроме головы)
         elif snake.get_head_position() in snake.positions[1:]:
             snake.reset()
             screen.fill(BOARD_BACKGROUND_COLOR)
