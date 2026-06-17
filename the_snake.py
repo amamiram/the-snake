@@ -67,7 +67,10 @@ class GameObject:
         """Абстрактный метод отрисовки
         (переопределяется в дочерних классах).
         """
-        raise NotImplementedError('Метод draw должен быть переопределён')
+        raise NotImplementedError(
+            f'Метод draw должен быть переопределён '
+            f'в классе {self.__class__.__name__}'
+        )
 
     def draw_cell(self, position, color, border_color=None):
         """Рисует одну ячейку на игровом поле.
@@ -91,12 +94,10 @@ class Apple(GameObject):
 
         Args:
             snake_positions: Список координат змейки (обязателен для игры,
-                           но для тестов None )
+                           но None для тестов)
         """
         super().__init__(body_color=APPLE_COLOR)
-        if snake_positions is None:
-            snake_positions = []
-        self.randomize_position(snake_positions)
+        self.randomize_position(snake_positions or [])
 
     def randomize_position(self, snake_positions):
         """Устанавливает случайную позицию яблока на игровом поле.
@@ -124,19 +125,17 @@ class Snake(GameObject):
     def __init__(self):
         """Инициализирует змейку с начальной позицией и направлением."""
         super().__init__(body_color=SNAKE_COLOR)
-        self.reset()
+        self.length = 1
+        self.positions = [(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)]
+        self.direction = RIGHT
+        self.last = None
 
     def get_head_position(self):
         """Возвращает координаты головы змейки."""
         return self.positions[0]
 
-    def update_direction(self):
-        """Обновляет направление движения (для совместимости с тестами)."""
-        # Направление обновляется через set_direction в handle_keys
-        pass
-
-    def set_direction(self, new_direction):
-        """Устанавливает новое направление движения.
+    def update_direction(self, new_direction=None):
+        """Обновляет направление движения.
 
         Args:
             new_direction: Новое направление (UP, DOWN, LEFT, RIGHT)
@@ -165,15 +164,11 @@ class Snake(GameObject):
         # Добавляем новую голову
         self.positions.insert(0, self.position)
 
-        # Сохраняем последний сегмент перед возможным удалением
+        # Сохраняем последний сегмент и удаляем хвост, если нужно
         if len(self.positions) > self.length:
-            self.last = self.positions[-1]
+            self.last = self.positions.pop()
         else:
             self.last = None
-
-        # Удаляем хвост, если длина превышает текущую
-        if len(self.positions) > self.length:
-            self.positions.pop()
 
     def draw(self):
         """Рисует змейку на экране."""
@@ -219,55 +214,36 @@ def handle_keys(snake):
             current_direction = snake.direction
             new_direction = DIRECTION_MAP.get((current_direction, event.key))
             if new_direction:
-                snake.set_direction(new_direction)
+                snake.update_direction(new_direction)
     return None
-
-
-def update_speed(action):
-    """Обновляет скорость игры.
-
-    Args:
-        action: 'speed_up' или 'speed_down'
-
-    Returns:
-        int: Новая скорость
-    """
-    global SPEED
-    if action == 'speed_up':
-        SPEED = min(SPEED + 1, MAX_SPEED)
-    elif action == 'speed_down':
-        SPEED = max(SPEED - 1, MIN_SPEED)
-    # Обновляем заголовок окна
-    pg.display.set_caption(
-        f'Змейка (стрелки - управление, +/- скорость: {SPEED} FPS)'
-    )
-    return SPEED
 
 
 def main():
     """Основной игровой цикл."""
+    global SPEED
     pg.init()
 
-    # Создаём объекты игры
     snake = Snake()
     apple = Apple(snake.positions)
 
-    # Основной игровой цикл
     while True:
         clock.tick(SPEED)
 
-        # Обработка событий клавиатуры и выхода
         action = handle_keys(snake)
-        if action in ('speed_up', 'speed_down'):
-            update_speed(action)
+        if action == 'speed_up':
+            SPEED = min(SPEED + 1, MAX_SPEED)
+            pg.display.set_caption(
+                f'Змейка (стрелки - управление, +/- скорость: {SPEED} FPS)'
+            )
+        elif action == 'speed_down':
+            SPEED = max(SPEED - 1, MIN_SPEED)
+            pg.display.set_caption(
+                f'Змейка (стрелки - управление, +/- скорость: {SPEED} FPS)'
+            )
 
-        # Обновляем направление (для совместимости с тестами)
         snake.update_direction()
-
-        # Двигаем змейку
         snake.move()
 
-        # Проверка: съела ли змейка яблоко?
         if snake.get_head_position() == apple.position:
             snake.length += 1
             apple.randomize_position(snake.positions)
@@ -276,7 +252,6 @@ def main():
             screen.fill(BOARD_BACKGROUND_COLOR)
             apple.randomize_position(snake.positions)
 
-        # Отрисовка
         apple.draw()
         snake.draw()
         pg.display.update()
