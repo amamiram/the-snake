@@ -94,7 +94,7 @@ class Apple(GameObject):
 
         Args:
             snake_positions: Список координат змейки (обязателен для игры,
-                           но None для тестов)
+                           но для тестов None)
         """
         super().__init__(body_color=APPLE_COLOR)
         self.randomize_position(snake_positions or [])
@@ -223,12 +223,15 @@ def main():
     global SPEED
     pg.init()
 
+    # Создаём объекты игры
     snake = Snake()
     apple = Apple(snake.positions)
 
+    # Основной игровой цикл
     while True:
         clock.tick(SPEED)
 
+        # Обработка событий клавиатуры и выхода
         action = handle_keys(snake)
         if action == 'speed_up':
             SPEED = min(SPEED + 1, MAX_SPEED)
@@ -241,17 +244,22 @@ def main():
                 f'Змейка (стрелки - управление, +/- скорость: {SPEED} FPS)'
             )
 
+        # Обновляем направление (для совместимости с тестами)
         snake.update_direction()
+        # Двигаем змейку
         snake.move()
 
+        # Проверка: съела ли змейка яблоко?
         if snake.get_head_position() == apple.position:
             snake.length += 1
             apple.randomize_position(snake.positions)
+        # Проверка: столкновение с собой (все сегменты кроме головы)       
         elif snake.get_head_position() in snake.positions[1:]:
             snake.reset()
             screen.fill(BOARD_BACKGROUND_COLOR)
             apple.randomize_position(snake.positions)
 
+        # Отрисовка
         apple.draw()
         snake.draw()
         pg.display.update()
