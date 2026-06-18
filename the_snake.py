@@ -226,7 +226,6 @@ def handle_keys(snake):
 
 def main():
     """Основной игровой цикл."""
-    global SPEED
     pg.init()
 
     # Создаём объекты игры
