@@ -125,10 +125,8 @@ class Snake(GameObject):
     def __init__(self):
         """Инициализирует змейку с начальной позицией и направлением."""
         super().__init__(body_color=SNAKE_COLOR)
-        self.length = 1
-        self.positions = [(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)]
+        self.reset()
         self.direction = RIGHT
-        self.last = None
 
     def get_head_position(self):
         """Возвращает координаты головы змейки."""
@@ -199,16 +197,24 @@ def handle_keys(snake):
              'speed_down' если нажата клавиша '-',
              None в остальных случаях
     """
+    global SPEED
+
     for event in pg.event.get():
         if event.type == pg.QUIT:
             pg.quit()
             raise SystemExit
         if event.type == pg.KEYDOWN:
-            # Изменение скорости
-            if event.key == pg.K_EQUALS or event.key == pg.K_PLUS:
-                return 'speed_up'
+            # Изменение скорости (сразу меняем глобальную SPEED)
+            if event.key in (pg.K_EQUALS, pg.K_PLUS):
+                SPEED = min(SPEED + 1, MAX_SPEED)
+                pg.display.set_caption(
+                    f'Змейка (стрелки - управление, +/- скорость: {SPEED} FPS)'
+                )
             if event.key == pg.K_MINUS:
-                return 'speed_down'
+                SPEED = max(SPEED - 1, MIN_SPEED)
+                pg.display.set_caption(
+                    f'Змейка (стрелки - управление, +/- скорость: {SPEED} FPS)'
+                )
 
             # Изменение направления через словарь
             current_direction = snake.direction
@@ -232,17 +238,7 @@ def main():
         clock.tick(SPEED)
 
         # Обработка событий клавиатуры и выхода
-        action = handle_keys(snake)
-        if action == 'speed_up':
-            SPEED = min(SPEED + 1, MAX_SPEED)
-            pg.display.set_caption(
-                f'Змейка (стрелки - управление, +/- скорость: {SPEED} FPS)'
-            )
-        elif action == 'speed_down':
-            SPEED = max(SPEED - 1, MIN_SPEED)
-            pg.display.set_caption(
-                f'Змейка (стрелки - управление, +/- скорость: {SPEED} FPS)'
-            )
+        handle_keys(snake)
 
         # Обновляем направление (для совместимости с тестами)
         snake.update_direction()
